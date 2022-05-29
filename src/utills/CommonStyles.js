@@ -132,7 +132,25 @@ const CommonStyles = StyleSheet.create({
     },
     rowJustifySpaceBtw: {
         flexDirection: 'row',
-        justifyContent: 'space-between'
+        justifyContent: 'space-between',
+        alignItems:"center",
+    },
+    h1:{
+        fontSize:width(10),
+        color:AppColors.black
+    },
+    h2:{
+        fontSize:width(5),
+        color:AppColors.black
+    },
+    h3:{
+        fontSize:width(3.6),
+        color:AppColors.black70
+    },
+    h4:{
+        fontSize:width(3.2),
+        color:AppColors.black70
     }
+
 });
 export default CommonStyles;
