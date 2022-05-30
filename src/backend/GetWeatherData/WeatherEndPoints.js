@@ -1,12 +1,12 @@
 
 import {ApiManager} from "../ApiManager";
 
-export const getCurrentWeather = async() => {
+export const getCurrentWeather = async(lat,lon) => {
     
   const response = await ApiManager.get(`/onecall`,
     { 
-        lat:"33.684422",
-        lon:"73.047882",
+        lat:lat,
+        lon:lon,
     }
   );
     if (response?.ok) {

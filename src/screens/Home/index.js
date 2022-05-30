@@ -9,46 +9,61 @@ import styles from './styles';
 import WeatherListing from '../../components/WeatherListing';
 import ModalDropDown from '../../components/ModalDropDown';
 import TextInput from '../../components/TextInput';
-import {cities, weatherCardData, data} from '../../utills/dummyData';
+import {cities} from '../../utills/dummyData';
 import WeatherCard from '../../components/WeatherCard';
 import {LineChart} from 'react-native-line-chart';
 import {height, width} from 'react-native-dimension';
+import moment from "moment";
 //API'S
 import {getCurrentWeather} from "../../backend/GetWeatherData/WeatherEndPoints"
 export default function Dashboard({navigation}) {
   const user = useSelector((state) => state.Auth.user);
   const [city, setCity] = useState(cities[0]);
-  const [response,setResponse] = useState({});
+  const [response,setResponse] = useState(null);
+  const [graphData,setGraphData] = useState(null);
   const dispatch = useDispatch();
 
   const mountData = async()=>{
-    const response = await getCurrentWeather();
+    const response = await getCurrentWeather(city.coords.lat,city.coords.lon);
     setResponse(response);
-    sortGraphData();
+    sortGraphData(response);  
   }
   useEffect(()=>{
     mountData();
-  },[])
+  },[city])
 
-  const sortGraphData = ()=>{
-    
+  const sortGraphData = (response)=>{
+    if(response!=null){
+      const labels = response?.daily?.map((item)=>{
+        return `${moment(new Date(item?.dt*1000)).format("Do")}`
+       })
+       const data = response?.daily.map((item)=>{
+         return parseInt(item?.temp?.max-273.15);
+       })
+       console.log(data);
+       setGraphData({
+         labels: labels,
+         datasets: [{
+         data: data
+         }]
+       })
+    }
   }
-
   const renderItem = ({item, index}) => {
-    return <WeatherCard item={item} index={index} />;
+    return <WeatherCard item={item} index={index} city={city.name}/>;
   };
   return (
     <ScreenWrapper statusBarColor={AppColors.white}
     scrollType={"scroll"}
     barStyle="dark-content">
       <View style={styles.mainViewContainer}>
-        <WeatherListing item={response.current}/>
+        <WeatherListing item={response?.current}/>
         <ModalDropDown
           containerStyles={styles.dropDown}
-          data={cities}
+          data={cities.map((item)=>item.name)}
           onSelect={(index) => setCity(cities[index])}>
           <TextInput
-            value={city}
+            value={city.name}
             placeholder={'Sargodha'}
             dropDown
             disable={false}
@@ -63,15 +78,16 @@ export default function Dashboard({navigation}) {
           horizontal
           showsHorizontalScrollIndicator={false}
         />
-        <LineChart
-          data={data}
-          width={width(100)} // from react-native
+        {
+          graphData&&
+          <LineChart
+          data={graphData}
+          width={width(100)}
           height={height(30)}
           chartConfig={{
             backgroundColor:AppColors.sementic,
-            // backgroundGradientFrom: '#000',
             backgroundGradientTo: AppColors.sementic,
-            decimalPlaces: 2, // optional, defaults to 2dp
+            decimalPlaces: 2,
             color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
             style: {
               borderRadius: 16,
@@ -83,7 +99,8 @@ export default function Dashboard({navigation}) {
             borderRadius: width(2),
           }}
         />
-        <Button title={'View city on map'} />
+        }
+        <Button title={'View city on map'} onPress={()=>navigation.navigate("Map",{currentCity:city.coords})}/>
       </View>
     </ScreenWrapper>
   );
